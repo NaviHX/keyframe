@@ -1,5 +1,6 @@
 use crate::*;
 pub(crate) const SAMPLE_TABLE_SIZE: usize = 20;
+const SAMPLE_STEP_SIZE: f32 = 1.0 / (SAMPLE_TABLE_SIZE - 1) as f32;
 
 #[cfg(feature = "mint_types")]
 mod bezier {
@@ -85,17 +86,16 @@ mod bezier {
 			let mut interval_start = 0.0;
 			let mut current_sample = 1;
 			let last_sample = SAMPLE_TABLE_SIZE - 1;
-			let sample_step_size = 1.0 / (SAMPLE_TABLE_SIZE as f32 - 1.0);
 
 			while current_sample != last_sample && self.sample_table[current_sample] <= x {
-				interval_start += sample_step_size;
+				interval_start += SAMPLE_STEP_SIZE;
 				current_sample += 1;
 			}
 			current_sample -= 1;
 
 			let dist = (x - self.sample_table[current_sample])
 				/ (self.sample_table[current_sample + 1] - self.sample_table[current_sample]);
-			let guess_for_t = interval_start + dist * sample_step_size;
+			let guess_for_t = interval_start + dist * SAMPLE_STEP_SIZE;
 
 			match Self::slope(guess_for_t, self.p1.x, self.p2.x) {
 				inital_slope if inital_slope >= NEWTON_MIN_SLOPE => {
@@ -105,7 +105,7 @@ mod bezier {
 				_ => Self::binary_subdivide(
 					x,
 					interval_start,
-					interval_start + sample_step_size,
+					interval_start + SAMPLE_STEP_SIZE,
 					self.p1.x,
 					self.p2.x,
 				),
@@ -132,7 +132,7 @@ mod bezier {
 			let mut arr = [0.0; SAMPLE_TABLE_SIZE];
 			for (i, value) in (0..SAMPLE_TABLE_SIZE)
 				.enumerate()
-				.map(|x| (x.0, Self::at(x.1 as f32 * SAMPLE_TABLE_SIZE as f32, p1.x, p2.x)))
+				.map(|x| (x.0, Self::at(x.1 as f32 * SAMPLE_STEP_SIZE, p1.x, p2.x)))
 			{
 				arr[i] = value;
 			}
